@@ -280,6 +280,7 @@ The collector can be configured to collect Kubernetes events.
 This feature is disabled by default. It has the following requirements:
 
 - It requires [Kubernetes Objects receiver](https://opentelemetry.io/docs/kubernetes/collector/components/#kubernetes-objects-receiver) to be included in the collector, such as [k8s](https://github.com/open-telemetry/opentelemetry-collector-releases/tree/main/distributions/otelcol-k8s) version of the collector image.
+- It can run in deployment, statefulset, or daemonset mode. In daemonset mode, leader election is enabled by default to prevent duplicate events.
 
 To enable this feature, set the  `presets.kubernetesEvents.enabled` property to `true`.
 Here is an example `values.yaml`:
@@ -304,6 +305,17 @@ presets:
 ```
 
 This flag defaults to `false` today, will default to `true` in a future release, and will then be removed.
+
+In daemonset mode the preset configures the [Kubernetes Leader Elector extension](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/k8sleaderelector) so that only one collector instance collects events, and grants the ClusterRole the lease permissions the extension needs:
+
+```yaml
+mode: daemonset
+presets:
+  kubernetesEvents:
+    enabled: true
+```
+
+The elector follows the receiver the preset configures. With the default Kubernetes Objects receiver it uses the `k8s.objects.receiver.opentelemetry.io` lease, which is shared with the `kubernetesObjects` preset; with `useK8sEventsReceiver: true` it uses the `k8s.events.receiver.opentelemetry.io` lease. Set `presets.kubernetesEvents.disableLeaderElection` to `true` to turn leader election off, in which case every collector instance collects events and duplicates them.
 
 ### Configuration for Host Metrics
 

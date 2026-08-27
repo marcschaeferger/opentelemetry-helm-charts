@@ -4,6 +4,48 @@ These upgrade guidelines only contain instructions for version upgrades which re
 If the version you want to upgrade to is not listed here, then there is nothing to do for you.
 Just upgrade and enjoy.
 
+## 0.171.0 to 0.172.0
+
+The `kubernetesEvents` preset now works with `mode: daemonset`. Previously the preset was silently
+ignored in daemonset mode: no receiver was added to the config, even though the generated ClusterRole
+still granted the events permissions.
+
+```yaml
+mode: daemonset
+presets:
+  kubernetesEvents:
+    enabled: true
+```
+
+In daemonset mode the preset configures the [k8s_leader_elector](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/extension/k8sleaderelector)
+extension so that only one collector instance collects events, and the generated ClusterRole gains
+`get`, `list`, `watch`, `create`, `update`, `patch` and `delete` on `coordination.k8s.io` `leases`.
+The extension is shared with the `clusterMetrics` and `kubernetesObjects` presets, so enabling several
+of them produces a single lease rule.
+
+The elector follows the receiver the preset configures:
+
+| `useK8sEventsReceiver` | Receiver | Extension | Lease |
+| --- | --- | --- | --- |
+| `false` (default) | `k8sobjects` | `k8s_leader_elector/k8s_objects` | `k8s.objects.receiver.opentelemetry.io` |
+| `true` | `k8s_events` | `k8s_leader_elector/k8s_events` | `k8s.events.receiver.opentelemetry.io` |
+
+With the default receiver the preset shares the `k8sobjects` receiver with the `kubernetesObjects`
+preset, so both presets also share one leader elector and one lease.
+
+Leader election can be turned off, in which case every collector instance collects events and
+duplicates them:
+
+```yaml
+mode: daemonset
+presets:
+  kubernetesEvents:
+    enabled: true
+    disableLeaderElection: true
+```
+
+Deployment and statefulset mode are unchanged.
+
 ## 0.170.0 to 0.171.0
 
 > [!WARNING]

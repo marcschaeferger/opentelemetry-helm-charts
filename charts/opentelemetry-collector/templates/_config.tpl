@@ -88,6 +88,9 @@ Build config file for daemonset OpenTelemetry Collector
 {{- if .Values.presets.kubernetesAttributes.enabled }}
 {{- $config = (include "opentelemetry-collector.applyKubernetesAttributesConfig" (dict "Values" $data "config" $config "rewriteDeprecatedComponentNames" .Values.rewriteDeprecatedComponentNames) | fromYaml) }}
 {{- end }}
+{{- if .Values.presets.kubernetesEvents.enabled }}
+{{- $config = (include "opentelemetry-collector.applyKubernetesEventsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
+{{- end }}
 {{- if .Values.presets.kubernetesObjects.enabled }}
 {{- $config = (include "opentelemetry-collector.applyKubernetesObjectsConfig" (dict "Values" $data "config" $config) | fromYaml) }}
 {{- end }}
@@ -494,22 +497,47 @@ processors:
 {{- end }}
 
 {{- define "opentelemetry-collector.applyKubernetesEventsConfig" -}}
+{{- $vals := .Values.Values -}}
 {{- $receiverName := "k8sobjects" -}}
-{{- if .Values.Values.presets.kubernetesEvents.useK8sEventsReceiver -}}
+{{- $electorName := "k8s_objects" -}}
+{{- $leaseName := "k8s.objects.receiver.opentelemetry.io" -}}
+{{- if $vals.presets.kubernetesEvents.useK8sEventsReceiver -}}
 {{- $receiverName = "k8s_events" -}}
+{{- $electorName = "k8s_events" -}}
+{{- $leaseName = "k8s.events.receiver.opentelemetry.io" -}}
 {{- end -}}
-{{- $config := mustMergeOverwrite (dict "service" (dict "pipelines" (dict "logs" (dict "receivers" list)))) (include "opentelemetry-collector.kubernetesEventsConfig" .Values | fromYaml) .config }}
+{{- $disableLeaderElection := false -}}
+{{- if and (hasKey $vals "presets") (hasKey $vals.presets "kubernetesEvents") -}}
+  {{- $disableLeaderElection = $vals.presets.kubernetesEvents.disableLeaderElection -}}
+{{- end -}}
+{{- $useLeaderElection := and (eq $vals.mode "daemonset") (not $disableLeaderElection) -}}
+{{- $ctx := mustMerge (dict "namespace" (include "opentelemetry-collector.namespace" .Values) "useLeaderElection" $useLeaderElection "electorName" $electorName "leaseName" $leaseName) .Values }}
+{{- $config := mustMergeOverwrite (dict "service" (dict "pipelines" (dict "logs" (dict "receivers" list)))) (include "opentelemetry-collector.kubernetesEventsConfig" $ctx | fromYaml) .config }}
+{{- if $useLeaderElection }}
+{{- $configExtensions := mustMergeOverwrite (dict "service" (dict "extensions" list)) $config }}
+{{- $_ := set $config.service "extensions" (append $configExtensions.service.extensions (printf "k8s_leader_elector/%s" $electorName) | uniq)  }}
+{{- end }}
 {{- $_ := set $config.service.pipelines.logs "receivers" (append $config.service.pipelines.logs.receivers $receiverName | uniq)  }}
 {{- $config | toYaml }}
 {{- end }}
 
 {{- define "opentelemetry-collector.kubernetesEventsConfig" -}}
-{{- if .Values.presets.kubernetesEvents.useK8sEventsReceiver -}}
+{{- if .useLeaderElection }}
+{{- include "opentelemetry-collector.leaderElectionConfig" (dict "name" .electorName "leaseName" .leaseName "leaseNamespace" .namespace) }}
+{{- end }}
 receivers:
+{{- if .Values.presets.kubernetesEvents.useK8sEventsReceiver }}
+{{- if .useLeaderElection }}
+  k8s_events:
+    k8s_leader_elector: k8s_leader_elector/{{ .electorName }}
+{{- else }}
   k8s_events: {}
-{{- else -}}
-receivers:
+{{- end }}
+{{- else }}
   k8sobjects:
+    {{- if .useLeaderElection }}
+    k8s_leader_elector: k8s_leader_elector/{{ .electorName }}
+    {{- end }}
     objects:
       - name: events
         mode: "watch"

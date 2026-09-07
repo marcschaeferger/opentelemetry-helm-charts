@@ -1,6 +1,6 @@
 apiVersion: v2
 name: opentelemetry-operator
-version: 0.122.0
+version: 0.122.1
 description: OpenTelemetry Operator Helm chart for Kubernetes
 type: application
 home: https://opentelemetry.io/
@@ -13,3 +13,16 @@ maintainers:
   - name: TylerHelmuth
 icon: https://raw.githubusercontent.com/cncf/artwork/a718fa97fffec1b9fd14147682e9e3ac0c8817cb/projects/opentelemetry/icon/color/opentelemetry-icon-color.png
 appVersion: 0.158.0
+annotations:
+  artifacthub.io/category: monitoring-logging
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/links: |
+    - name: Chart source
+      url: https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-operator
+    - name: Chart releases
+      url: https://github.com/open-telemetry/opentelemetry-helm-charts/releases?q=opentelemetry-operator&expanded=true
+    - name: support
+      url: https://github.com/open-telemetry/opentelemetry-helm-charts/issues
+  artifacthub.io/signKey: |
+    fingerprint: 809A5AC5DA08F79218A2962799CA262FF8EBBB9B
+    url: https://open-telemetry.github.io/opentelemetry-helm-charts/pubkey.asc

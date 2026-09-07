@@ -1,0 +1,11 @@
+apiVersion: v2
+name: example-chart
+version: 0.1.0
+description: Example chart whose annotations block is not the last key
+type: application
+appVersion: 1.0.0
+annotations:
+  artifacthub.io/category: monitoring-logging
+dependencies:
+  - name: other-chart
+    version: "0.0.0"

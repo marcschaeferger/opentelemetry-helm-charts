@@ -1,0 +1,9 @@
+apiVersion: v2
+name: example-chart
+version: 0.1.0
+description: Example chart used by the generate-artifacthub-changes tests
+type: application
+appVersion: 1.0.0
+annotations:
+  artifacthub.io/category: monitoring-logging
+  artifacthub.io/license: Apache-2.0

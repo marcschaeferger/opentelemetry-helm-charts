@@ -63,6 +63,14 @@ jobs:
           GPG_PASSPHRASE_FILE: "${{ runner.temp }}/gpg-passphrase"
           GPG_KEY_PATH: "${{ runner.temp }}/private.key"
 
+      # Derives the Artifact Hub changes annotation from the commits behind each chart
+      # version. It runs before packaging so the annotation reaches the published chart,
+      # and it never fails the release: a chart it cannot process is released without it.
+      - name: Generate Artifact Hub changes annotations
+        run: .github/scripts/generate-artifacthub-changes.sh
+        env:
+          GITHUB_REPOSITORY: "${{ github.repository }}"
+
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@cae68fefc6b5f367a0275617c9f83181ba54714f # v1.7.0
         with:

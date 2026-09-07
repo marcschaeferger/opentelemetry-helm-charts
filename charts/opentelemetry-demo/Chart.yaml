@@ -1,7 +1,7 @@
 apiVersion: v2
 type: application
 name: opentelemetry-demo
-version: 0.41.0
+version: 0.41.1
 description: opentelemetry demo helm chart
 home: https://opentelemetry.io/
 sources:
@@ -40,3 +40,16 @@ dependencies:
     version: 3.7.0
     repository: https://opensearch-project.github.io/helm-charts/
     condition: opensearch.enabled
+annotations:
+  artifacthub.io/category: monitoring-logging
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/links: |
+    - name: Chart source
+      url: https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-demo
+    - name: Chart releases
+      url: https://github.com/open-telemetry/opentelemetry-helm-charts/releases?q=opentelemetry-demo&expanded=true
+    - name: support
+      url: https://github.com/open-telemetry/opentelemetry-helm-charts/issues
+  artifacthub.io/signKey: |
+    fingerprint: 809A5AC5DA08F79218A2962799CA262FF8EBBB9B
+    url: https://open-telemetry.github.io/opentelemetry-helm-charts/pubkey.asc

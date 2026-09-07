@@ -34,6 +34,14 @@ jobs:
           --chart-repos jaeger=https://jaegertracing.github.io/helm-charts
           --chart-repos opensearch=https://opensearch-project.github.io/helm-charts"
 
+      - name: Run make check-artifacthub-annotations
+        run: |
+          python3 -m pip install --quiet --disable-pip-version-check pyyaml
+          make check-artifacthub-annotations
+
+      - name: Run make test-artifacthub-changes
+        run: make test-artifacthub-changes
+
       - name: Run make check-examples
         run: make check-examples
 

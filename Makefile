@@ -137,6 +137,16 @@ check-operator-feature-gates:
 		exit 1; \
 	fi
 
+.PHONY: check-artifacthub-annotations
+check-artifacthub-annotations:
+	@python3 .github/scripts/check-artifacthub-annotations.py $(addprefix ./charts/,$(CHARTS))
+
+# The changes annotation is generated during the release, so it is covered by the
+# generator's own tests rather than by inspecting the checked in charts.
+.PHONY: test-artifacthub-changes
+test-artifacthub-changes:
+	@.github/scripts/test-generate-artifacthub-changes.sh
+
 define get-crd
 $(call get-base-crd,$(1),$(2))
 @sed -i '\#controller-gen.kubebuilder.io/version:#a\    {{- with .Values.crds.annotations }}\n    {{- toYaml . | nindent 4 }}\n    {{- end }}' $(1)

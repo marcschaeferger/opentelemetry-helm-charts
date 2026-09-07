@@ -1,7 +1,7 @@
 ---
 apiVersion: v2
 name: opentelemetry-ebpf-instrumentation
-version: 0.13.0
+version: 0.13.1
 description: OpenTelemetry eBPF instrumentation Helm chart for Kubernetes
 type: application
 home: https://opentelemetry.io/
@@ -15,3 +15,16 @@ maintainers:
   - name: TylerHelmuth
   - name: nimrodavni78
 appVersion: v0.12.2
+annotations:
+  artifacthub.io/category: monitoring-logging
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/links: |
+    - name: Chart source
+      url: https://github.com/open-telemetry/opentelemetry-helm-charts/tree/main/charts/opentelemetry-ebpf-instrumentation
+    - name: Chart releases
+      url: https://github.com/open-telemetry/opentelemetry-helm-charts/releases?q=opentelemetry-ebpf-instrumentation&expanded=true
+    - name: support
+      url: https://github.com/open-telemetry/opentelemetry-helm-charts/issues
+  artifacthub.io/signKey: |
+    fingerprint: 809A5AC5DA08F79218A2962799CA262FF8EBBB9B
+    url: https://open-telemetry.github.io/opentelemetry-helm-charts/pubkey.asc

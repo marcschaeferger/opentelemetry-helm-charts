@@ -1,4 +1,4 @@
-name: Sync README to gh-pages
+name: Sync repository metadata to gh-pages
 
 permissions: {}
 
@@ -8,6 +8,7 @@ on:
       - main
     paths:
       - 'README.md'
+      - 'artifacthub-repo.yml'
 
 jobs:
   sync:
@@ -19,19 +20,22 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Copy README to temp
-        run: cp -f README.md ${{ runner.temp }}/README.md
+      - name: Copy files to temp
+        run: |
+          cp -f README.md ${{ runner.temp }}/README.md
+          cp -f artifacthub-repo.yml ${{ runner.temp }}/artifacthub-repo.yml
 
       - name: Checkout gh-pages
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: gh-pages
 
-      - name: Sync README and push
+      - name: Sync files and push
         run: |
           cp -f ${{ runner.temp }}/README.md .
+          cp -f ${{ runner.temp }}/artifacthub-repo.yml .
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
-          git add README.md
-          git commit --signoff -m "Sync README from main" || exit 0
+          git add README.md artifacthub-repo.yml
+          git commit --signoff -m "Sync repository metadata from main" || exit 0
           git push

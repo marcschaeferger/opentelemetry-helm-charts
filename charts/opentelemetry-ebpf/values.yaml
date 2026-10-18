@@ -2,54 +2,85 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+# -- Override name of the chart used in Kubernetes object names.
 nameOverride: ""
+# -- Override fully qualified app name. Currently only used for the name of the ConfigMap.
 fullnameOverride: ""
+# -- Cluster name. Passed to the collectors as EBPF_NET_CLUSTER_NAME and set as the environment label
+# in the ConfigMap. Evaluated as a template.
 clusterName: ""
 
 image:
+  # -- Overrides the image tag whose default is the chart appVersion.
+  # Not applied to the k8s-relay image, see k8sCollector.relay.image.tag.
   tag: ""
+  # -- Default image registry for all components.
   registry: otel
+  # -- Image pull policy for all containers.
   pullPolicy: IfNotPresent
 
+# -- Names of image pull secrets used by all pods.
 imagePullSecrets: []
 
+# -- Resource requests and limits for the reducer container.
 resources: {}
 
-# OTLP gRPC endpoint to send the collected metrics
+# -- OTLP gRPC endpoint to send the collected metrics
 endpoint:
+  # -- Host name or address of the OTLP gRPC endpoint.
   address: ""
+  # -- Port of the OTLP gRPC endpoint.
   port: 4317
 
 log:
+  # -- Enable console logging for the kernel collector, k8s-relay and cloud collector.
+  # The reducer and k8s-watcher always log to the console.
   console: false
   # possible values: { error | warning | info | debug | trace }
+  # -- Log level for all components. Possible values: error, warning, info, debug, trace.
   level: warning
 
 debug:
+  # -- Enable debug mode.
   enabled: false
+  # -- Store minidumps on the node in /var/run/network-explorer/minidump.
   storeMinidump: false
+  # -- Send a metric when the collector exits unexpectedly, useful to detect crashes and restarts.
+  # The metric is sent to the address and port defined in the endpoint section. Requires debug.enabled.
   sendUnplannedExitMetric: false
 
 kernelCollector:
+  # -- Deploy the kernel collector DaemonSet.
   enabled: true
   serviceAccount:
+    # -- Specifies whether a service account should be created
     create: true
+    # -- The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
     name: ""
   image:
+    # -- Overrides image.registry for the kernel collector.
     registry: ""
+    # -- Overrides image.tag for the kernel collector.
     tag: ""
+    # -- Image name of the kernel collector.
     name: opentelemetry-ebpf-kernel-collector
 
+  # -- Node selector for the kernel collector pods.
   nodeSelector: {}
+  # -- Disable HTTP metrics in the kernel collector.
   disableHttpMetrics: false
 
+  # -- Tolerations for the kernel collector pods.
   tolerations:
     - operator: "Exists"
       effect: "NoExecute"
     - operator: "Exists"
       effect: "NoSchedule"
 
+  # -- Affinity for the kernel collector pods.
   affinity: {}
+  # -- Resource requests and limits for the kernel collector container.
   resources: {}
 
   # uncomment the line below to disable automatic kernel headers fetching
@@ -62,50 +93,80 @@ kernelCollector:
   # collectNomadMetadata: true
 
 cloudCollector:
+  # -- Deploy the cloud collector.
   enabled: false
   image:
+    # -- Overrides image.registry for the cloud collector.
     registry: ""
+    # -- Overrides image.tag for the cloud collector.
     tag: ""
+    # -- Image name of the cloud collector.
     name: opentelemetry-ebpf-cloud-collector
 
   serviceAccount:
+    # -- Specifies whether a service account should be created
     create: true
+    # -- The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
     name: ""
+    # -- Annotations to add to the service account
     annotations: {}
       ## eks.amazonaws.com/role-arn: "role-arn-name"
 
+  # -- Tolerations for the cloud collector pod.
   tolerations: []
+  # -- Affinity for the cloud collector pod.
   affinity: {}
 
 k8sCollector:
+  # -- Deploy the k8s collector (k8s-watcher and k8s-relay).
   enabled: true
   serviceAccount:
+    # -- Specifies whether a service account should be created
     create: true
+    # -- The name of the service account to use.
+    # If not set and create is true, a name is generated using the fullname template
     name: ""
   relay:
     image:
+      # -- Overrides image.registry for the k8s-relay.
       registry: ""
+      # -- Image tag of the k8s-relay. Defaults to the chart appVersion.
       tag: ""
+      # -- Image name of the k8s-relay.
       name: opentelemetry-ebpf-k8s-relay
   watcher:
     image:
       registry: ""
+      # -- Overrides image.tag for the k8s-watcher.
       tag: ""
+      # -- Image name of the k8s-watcher.
       name: opentelemetry-ebpf-k8s-watcher
 
+  # -- Tolerations for the k8s collector pod.
   tolerations: []
+  # -- Affinity for the k8s collector pod.
   affinity: {}
 
 reducer:
   image:
+    # -- Overrides image.registry for the reducer.
     registry: ""
+    # -- Overrides image.tag for the reducer.
     tag: ""
+    # -- Image name of the reducer.
     name: opentelemetry-ebpf-reducer
+  # -- Additional command line arguments for the reducer, as a list.
   extraArgs: {}
+  # -- Number of ingest shards of the reducer.
   ingestShards: 1
+  # -- Number of matching shards of the reducer.
   matchingShards: 1
+  # -- Number of aggregation shards of the reducer.
   aggregationShards: 1
   disableInternalMetrics: true
+  # -- Metrics or metric categories to disable.
+  # The available names are listed in the comments below this key in [values.yaml](./values.yaml).
   disableMetrics: []
     ### to disable an entire metric category: ###
     # - tcp.all
@@ -177,6 +238,9 @@ reducer:
     # - ebpf_net.rpc_queue_buf_utilization
     ### to enable all metrics (including metrics turned off by default): ###
     # - none
+  # -- Metrics or metric categories to enable.
+  # Disable metrics flag is evaluated first and only then enable metric flag is evaluated.
+  # The available names are listed in the comments below this key in [values.yaml](./values.yaml).
   enableMetrics: []
     ### Disable metrics flag is evaluated first and only then enable metric flag is evaluated. ###
     ### to enable an entire metric category: ###
@@ -250,10 +314,14 @@ reducer:
     # - ebpf_net.rpc_queue_buf_utilization
 
   resources: {}
+  # -- Node selector for the reducer pod.
   nodeSelector: {}
+  # -- Tolerations for the reducer pod.
   tolerations: []
+  # -- Affinity for the reducer pod.
   affinity: {}
   service:
+    # -- Type of the reducer service.
     type: ClusterIP
     ports:
       telemetry:
@@ -272,4 +340,5 @@ reducer:
         appProtocol: http
 
 rbac:
+  # -- Create the ClusterRoles and ClusterRoleBindings for the kernel collector and the k8s collector.
   create: true
